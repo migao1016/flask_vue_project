@@ -1,0 +1,79 @@
+                                <!DOCTYPE html>
+                                <html lang="en">
+                                <head>
+                                    <meta charset="UTF-8">
+                                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                                    <title>Flask App</title>
+                                    <style>
+                                        .error {
+                                            color: red;
+                                        }
+                                        .result {
+                                            margin-top: 20px;
+                                        }
+                                    </style>
+                                </head>
+                                <body>
+                                    <h1>Plurk Data Fetcher</h1>
+                                    <form id="fetchForm">
+                                        <input id="urlInput" type="text" placeholder="Enter URL" required />
+                                        <button type="submit">Submit</button>
+                                        <button type="button" id="clearButton">Clear Input</button>
+                                    </form>
+                                    <div id="error" class="error"></div>
+                                    <div id="result" class="result"></div>
+
+                                    <script>
+                                        document.getElementById('fetchForm').addEventListener('submit', function (event) {
+                                            event.preventDefault();
+                                            const url = document.getElementById('urlInput').value;
+
+                                            fetch('/fetch', {
+                                                method: 'POST',
+                                                headers: {
+                                                    'Content-Type': 'application/json',
+                                                },
+                                                body: JSON.stringify({ url: url }),
+                                            })
+                                            .then(response => response.json())
+                                            .then(data => {
+                                                if (data.error) {
+                                                    document.getElementById('error').textContent = data.error;
+                                                    document.getElementById('result').innerHTML = '';
+                                                } else {
+                                                    document.getElementById('error').textContent = '';
+                                                    let resultHtml = '<h2>Results:</h2>';
+
+                                                    // Display groups
+                                                    for (const groupData of data.groups) {
+                                                        resultHtml += `<h3>回合: ${groupData.group}</h3><ul>`;
+                                                        for (const {color, count} of groupData.counts) {
+                                                            resultHtml += `<li>${color}: ${count}</li>`;
+                                                        }
+                                                        resultHtml += '</ul>';
+                                                    }
+
+                                                    // Display totals
+                                                    resultHtml += '<h2>Totals:</h2><ul>';
+                                                    for (const {color, count} of data.totals) {
+                                                        resultHtml += `<li>${color}: ${count}</li>`;
+                                                    }
+                                                    resultHtml += '</ul>';
+
+                                                    document.getElementById('result').innerHTML = resultHtml;
+                                                }
+                                            })
+                                            .catch(error => {
+                                                document.getElementById('error').textContent = 'An error occurred';
+                                                document.getElementById('result').innerHTML = '';
+                                            });
+                                        });
+
+                                        document.getElementById('clearButton').addEventListener('click', function () {
+                                            document.getElementById('urlInput').value = '';
+                                            document.getElementById('result').innerHTML = '';
+                                            document.getElementById('error').textContent = '';
+                                        });
+                                    </script>
+                                </body>
+                                </html>
