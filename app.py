@@ -25,7 +25,7 @@ def parse_responses(responses):
         soup = BeautifulSoup(content, 'html.parser')
         images = soup.find_all('img', {'class': 'emoticon'})
 
-        group_match = re.search(r'速通：｛(\d+)~(\d+)｝', content)
+        group_match = re.search(r'速通：｛(\d+)[~-](\d+)｝', content)
         if group_match:
             start_num, end_num = group_match.groups()
             group_key = f"{start_num}~{end_num}"
