@@ -6,7 +6,6 @@ from collections import Counter
 
 app = Flask(__name__)
 
-
 def fetch_images(api_url, payload):
     response = requests.post(api_url, json=payload)
     if response.status_code != 200:
@@ -15,14 +14,13 @@ def fetch_images(api_url, payload):
     responses = data.get('responses', [])
     return responses
 
-
 def parse_responses(responses):
     total_counter = Counter()  # 用于统计各个 rndnum 的总数
 
     for response in responses:
         content = response.get('content', '')
         soup = BeautifulSoup(content, 'html.parser')
-        images = soup.find_all('img', {'class': 'emoticon'})
+        images = soup.find_all('img', {'class': 'emoticon', 'alt': '(bzzz)'})
 
         for img in images:
             rndnum = img.get('rndnum')
@@ -31,11 +29,9 @@ def parse_responses(responses):
 
     return total_counter
 
-
 @app.route('/')
 def index():
     return render_template('index.html')
-
 
 @app.route('/fetch', methods=['POST'])
 def fetch():
@@ -67,7 +63,6 @@ def fetch():
         result['totals'].append({'color': color, 'count': total_counter[num]})
 
     return jsonify(result)
-
 
 # if __name__ == '__main__':
 #    app.run(host='0.0.0.0', port=5000, debug=True)
