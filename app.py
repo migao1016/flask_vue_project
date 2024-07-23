@@ -23,7 +23,7 @@ def parse_responses(responses):
     for response in responses:
         content = response.get('content', '')
         soup = BeautifulSoup(content, 'html.parser')
-        images = soup.find_all('img', {'class': 'emoticon'})
+        images = soup.find_all('img', {'class': 'emoticon', 'alt': '(bzzz)'})
 
         group_match = re.search(r'速通：｛(\d+)[~-](\d+)｝', content)
         if group_match:
