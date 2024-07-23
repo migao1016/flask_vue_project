@@ -17,7 +17,6 @@ def fetch_images(api_url, payload):
 
 
 def parse_responses(responses):
-    group_counter = {}
     total_counter = Counter()  # 用于统计各个 rndnum 的总数
 
     for response in responses:
@@ -25,20 +24,12 @@ def parse_responses(responses):
         soup = BeautifulSoup(content, 'html.parser')
         images = soup.find_all('img', {'class': 'emoticon'})
 
-        group_match = re.search(r'速通：｛(\d+)[~-](\d+)｝', content)
-        if group_match:
-            start_num, end_num = group_match.groups()
-            group_key = f"{start_num}~{end_num}"
-            if group_key not in group_counter:
-                group_counter[group_key] = Counter()
+        for img in images:
+            rndnum = img.get('rndnum')
+            if rndnum:
+                total_counter[rndnum] += 1  # 更新各个 rndnum 的总数
 
-            for img in images:
-                rndnum = img.get('rndnum')
-                if rndnum:
-                    group_counter[group_key][rndnum] += 1
-                    total_counter[rndnum] += 1  # 更新各个 rndnum 的总数
-
-    return group_counter, total_counter
+    return total_counter
 
 
 @app.route('/')
@@ -65,18 +56,10 @@ def fetch():
     payload = {"plurk_id": plurk_id, "from_response_id": 0}
 
     responses = fetch_images(api_url, payload)
-    group_counter, total_counter = parse_responses(responses)
+    total_counter = parse_responses(responses)
 
     color_map = {'1': '黑', '2': '紅', '3': '藍', '4': '綠'}
-    result = {'groups': [], 'totals': []}
-
-    # 按组统计
-    for group, counts in group_counter.items():
-        group_data = {'group': group, 'counts': []}
-        for num in ['1', '2', '3', '4']:
-            color = color_map.get(num, '未知')
-            group_data['counts'].append({'color': color, 'count': counts[num]})
-        result['groups'].append(group_data)
+    result = {'totals': []}
 
     # 计算总和
     for num in ['1', '2', '3', '4']:
